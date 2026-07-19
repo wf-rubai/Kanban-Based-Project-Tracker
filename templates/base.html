@@ -1,0 +1,826 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Kanban Tracker{% endblock %}</title>
+    <!-- <link rel="stylesheet" href="{% static 'core/css/variables.css' %}"> -->
+    <!-- <link rel="stylesheet" href="{% static 'core/css/base.css' %}"> -->
+    {% block extra_css %}{% endblock %}
+    <style>
+        /* ==========================================================================
+   Reset & base
+   ========================================================================== */
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: var(--font-sans);
+            font-size: 14px;
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        a {
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        h1,
+        h2,
+        h3,
+        h4,
+        h5 {
+            margin: 0 0 8px 0;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        p {
+            margin: 0 0 8px 0;
+        }
+
+        ul,
+        ol {
+            margin: 0;
+            padding-left: 20px;
+        }
+
+        code {
+            font-family: var(--font-mono);
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-muted);
+            border-radius: 4px;
+            padding: 1px 5px;
+            font-size: 0.9em;
+        }
+
+        ::selection {
+            background: var(--primary-soft);
+        }
+
+        /* Scrollbars */
+        ::-webkit-scrollbar {
+            width: 10px;
+            height: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 6px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--text-muted);
+        }
+
+        /* ==========================================================================
+   Buttons
+   ========================================================================== */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 8px 16px;
+            font-size: 13px;
+            font-weight: 500;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+            background: var(--card);
+            color: var(--text);
+            cursor: pointer;
+            transition: background var(--transition), border-color var(--transition), transform var(--transition);
+            white-space: nowrap;
+        }
+
+        .btn:hover {
+            background: var(--card-hover);
+            border-color: var(--text-muted);
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: #fff;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-hover);
+        }
+
+        .btn-danger {
+            background: transparent;
+            border-color: var(--danger);
+            color: var(--danger);
+        }
+
+        .btn-danger:hover {
+            background: var(--danger-soft);
+        }
+
+        .btn-success {
+            background: transparent;
+            border-color: var(--success);
+            color: var(--success);
+        }
+
+        .btn-success:hover {
+            background: var(--success-soft);
+        }
+
+        .btn-ghost {
+            background: transparent;
+            border-color: transparent;
+        }
+
+        .btn-ghost:hover {
+            background: var(--card-hover);
+        }
+
+        .btn-sm {
+            padding: 4px 10px;
+            font-size: 12px;
+        }
+
+        .btn-block {
+            width: 100%;
+        }
+
+        .btn-icon {
+            padding: 6px 8px;
+        }
+
+        /* ==========================================================================
+   Forms
+   ========================================================================== */
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px 12px;
+            background: var(--bg-elevated);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            color: var(--text);
+            font-size: 14px;
+            font-family: inherit;
+            transition: border-color var(--transition), box-shadow var(--transition);
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px var(--primary-soft);
+        }
+
+        textarea.form-control {
+            resize: vertical;
+            min-height: 90px;
+        }
+
+        .form-hint {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        .form-error {
+            font-size: 12px;
+            color: var(--danger);
+            margin-top: 4px;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 12px;
+        }
+
+        .form-row>.form-group {
+            flex: 1;
+        }
+
+        .checkbox-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        select.form-control {
+            appearance: none;
+            cursor: pointer;
+        }
+
+        .password-field {
+            position: relative;
+        }
+
+        .password-toggle {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        /* ==========================================================================
+   Badges
+   ========================================================================== */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 2px 8px;
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.02em;
+        }
+
+        .badge-owner {
+            background: var(--primary-soft);
+            color: var(--primary);
+        }
+
+        .badge-member {
+            background: var(--border-muted);
+            color: var(--text-secondary);
+        }
+
+        .badge-success {
+            background: var(--success-soft);
+            color: var(--success);
+        }
+
+        .badge-warning {
+            background: var(--warning-soft);
+            color: var(--warning);
+        }
+
+        .badge-danger {
+            background: var(--danger-soft);
+            color: var(--danger);
+        }
+
+        .imp-badge-veryhigh {
+            background: var(--danger-soft);
+            color: var(--imp-veryhigh);
+        }
+
+        .imp-badge-high {
+            background: var(--warning-soft);
+            color: var(--imp-high);
+        }
+
+        .imp-badge-medium {
+            background: var(--primary-soft);
+            color: var(--imp-medium);
+        }
+
+        .imp-badge-low {
+            background: var(--success-soft);
+            color: var(--imp-low);
+        }
+
+        .imp-badge-verylow {
+            background: var(--border-muted);
+            color: var(--imp-verylow);
+        }
+
+        .status-pill {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .status-pill.status-backlog {
+            background: var(--border-muted);
+            color: var(--status-backlog);
+        }
+
+        .status-pill.status-in_progress {
+            background: var(--primary-soft);
+            color: var(--status-inprogress);
+        }
+
+        .status-pill.status-testing {
+            background: var(--warning-soft);
+            color: var(--status-testing);
+        }
+
+        .status-pill.status-review {
+            background: rgba(163, 113, 247, 0.15);
+            color: var(--status-review);
+        }
+
+        .status-pill.status-done {
+            background: var(--success-soft);
+            color: var(--status-done);
+        }
+
+        /* ==========================================================================
+   Cards / panels shared
+   ========================================================================== */
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-sm);
+            transition: border-color var(--transition), transform var(--transition), box-shadow var(--transition);
+        }
+
+        /* ==========================================================================
+   Modal
+   ========================================================================== */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(1, 4, 9, 0.65);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            animation: fadeIn 0.15s ease;
+        }
+
+        .modal-box {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-lg);
+            width: 420px;
+            max-width: 92vw;
+            padding: 22px;
+            animation: popIn 0.18s ease;
+        }
+
+        .modal-title {
+            font-size: 16px;
+            margin-bottom: 6px;
+        }
+
+        .modal-body {
+            color: var(--text-secondary);
+            font-size: 13px;
+            margin-bottom: 18px;
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes popIn {
+            from {
+                opacity: 0;
+                transform: scale(0.96);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        /* ==========================================================================
+   Toasts
+   ========================================================================== */
+        .toast-stack {
+            position: fixed;
+            top: 16px;
+            right: 16px;
+            z-index: 2000;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .toast {
+            padding: 12px 16px;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-left: 3px solid var(--primary);
+            border-radius: var(--radius-sm);
+            box-shadow: var(--shadow-md);
+            font-size: 13px;
+            min-width: 220px;
+            animation: slideIn 0.2s ease;
+        }
+
+        .toast-success {
+            border-left-color: var(--success);
+        }
+
+        .toast-error,
+        .toast-danger {
+            border-left-color: var(--danger);
+        }
+
+        .toast-warning {
+            border-left-color: var(--warning);
+        }
+
+        .toast-info {
+            border-left-color: var(--primary);
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(24px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        /* ==========================================================================
+   Loading / skeleton / empty states
+   ========================================================================== */
+        .spinner {
+            width: 18px;
+            height: 18px;
+            border: 2px solid var(--border);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+            display: inline-block;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .skeleton {
+            background: linear-gradient(90deg, var(--border-muted) 25%, var(--card-hover) 37%, var(--border-muted) 63%);
+            background-size: 400% 100%;
+            animation: shimmer 1.4s ease infinite;
+            border-radius: var(--radius-sm);
+        }
+
+        @keyframes shimmer {
+            0% {
+                background-position: 100% 50%;
+            }
+
+            100% {
+                background-position: 0 50%;
+            }
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 16px;
+            color: var(--text-muted);
+        }
+
+        .empty-state .empty-icon-text {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+        }
+
+        .empty-state .empty-title {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 10px;
+        }
+
+        /* ==========================================================================
+   Tooltip
+   ========================================================================== */
+        [data-tooltip] {
+            position: relative;
+        }
+
+        [data-tooltip]:hover::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: 125%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #010409;
+            color: var(--text);
+            border: 1px solid var(--border);
+            padding: 4px 8px;
+            font-size: 11px;
+            border-radius: 6px;
+            white-space: nowrap;
+            z-index: 500;
+            pointer-events: none;
+        }
+
+        /* ==========================================================================
+   Utility
+   ========================================================================== */
+        .text-secondary {
+            color: var(--text-secondary);
+        }
+
+        .text-muted {
+            color: var(--text-muted);
+        }
+
+        .text-danger {
+            color: var(--danger);
+        }
+
+        .text-success {
+            color: var(--success);
+        }
+
+        .flex {
+            display: flex;
+        }
+
+        .flex-col {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .items-center {
+            align-items: center;
+        }
+
+        .justify-between {
+            justify-content: space-between;
+        }
+
+        .gap-8 {
+            gap: 8px;
+        }
+
+        .gap-12 {
+            gap: 12px;
+        }
+
+        .mt-8 {
+            margin-top: 8px;
+        }
+
+        .mt-16 {
+            margin-top: 16px;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .divider {
+            height: 1px;
+            background: var(--border);
+            margin: 14px 0;
+            border: none;
+        }
+    </style>
+    <style>
+        :root {
+            /* Core palette */
+            --bg: #0D1117;
+            --bg-elevated: #10151C;
+            --card: #161B22;
+            --card-hover: #1C2128;
+            --border: #30363D;
+            --border-muted: #21262D;
+
+            --primary: #2F81F7;
+            --primary-hover: #4C93F8;
+            --primary-soft: rgba(47, 129, 247, 0.15);
+
+            --text: #E6EDF3;
+            --text-secondary: #8B949E;
+            --text-muted: #6E7681;
+
+            --success: #3FB950;
+            --success-soft: rgba(63, 185, 80, 0.15);
+            --warning: #D29922;
+            --warning-soft: rgba(210, 153, 34, 0.15);
+            --danger: #F85149;
+            --danger-soft: rgba(248, 81, 73, 0.15);
+
+            /* Status colors (Kanban) */
+            --status-backlog: #8B949E;
+            --status-inprogress: #2F81F7;
+            --status-testing: #D29922;
+            --status-review: #A371F7;
+            --status-done: #3FB950;
+
+            /* Importance colors */
+            --imp-veryhigh: #F85149;
+            --imp-high: #D29922;
+            --imp-medium: #2F81F7;
+            --imp-low: #3FB950;
+            --imp-verylow: #8B949E;
+
+            /* Sizing */
+            --radius: 12px;
+            --radius-sm: 8px;
+            --transition: 0.2s ease;
+            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4);
+            --shadow-md: 0 4px 14px rgba(0, 0, 0, 0.45);
+            --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.55);
+
+            --panel-left-width: 20%;
+            --panel-right-width: 20%;
+            --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            --font-mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+        }
+    </style>
+</head>
+
+<body>
+    {% if messages %}
+    <div class="toast-stack" id="toastStack">
+        {% for message in messages %}
+        <div class="toast toast-{{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% block content %}{% endblock %}
+
+    <script>
+        /* Shared front-end utilities: CSRF handling, fetch wrapper, small helpers. */
+
+        function getCookie(name) {
+            const value = `; ${document.cookie}`;
+            const parts = value.split(`; ${name}=`);
+            if (parts.length === 2) return decodeURIComponent(parts.pop().split(';').shift());
+            return null;
+        }
+
+        const CSRF_TOKEN = getCookie('csrftoken');
+
+        /**
+         * apiFetch - thin wrapper around fetch() that injects CSRF token, JSON
+         * headers, and normalizes error handling for our AJAX endpoints.
+         */
+        async function apiFetch(url, options = {}) {
+            const opts = Object.assign({}, options);
+            opts.headers = Object.assign(
+                {
+                    'X-CSRFToken': CSRF_TOKEN,
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+                opts.headers || {}
+            );
+            if (opts.body && !(opts.body instanceof FormData)) {
+                opts.headers['Content-Type'] = 'application/json';
+            }
+            const res = await fetch(url, opts);
+            let data = null;
+            try {
+                data = await res.json();
+            } catch (e) {
+                data = null;
+            }
+            if (!res.ok || (data && data.ok === false)) {
+                const message = (data && data.error) || `Request failed (${res.status})`;
+                const err = new Error(message);
+                err.data = data;
+                throw err;
+            }
+            return data;
+        }
+
+        function showToast(message, type = 'info') {
+            let stack = document.getElementById('toastStack');
+            if (!stack) {
+                stack = document.createElement('div');
+                stack.id = 'toastStack';
+                stack.className = 'toast-stack';
+                document.body.appendChild(stack);
+            }
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            toast.textContent = message;
+            stack.appendChild(toast);
+            setTimeout(() => toast.remove(), 4200);
+        }
+
+        function formatDateTime(iso) {
+            if (!iso) return '—';
+            const d = new Date(iso);
+            if (isNaN(d.getTime())) return iso;
+            return d.toLocaleString(undefined, {
+                year: 'numeric', month: 'short', day: '2-digit',
+                hour: '2-digit', minute: '2-digit',
+            });
+        }
+
+        function debounce(fn, wait = 400) {
+            let t;
+            return (...args) => {
+                clearTimeout(t);
+                t = setTimeout(() => fn.apply(this, args), wait);
+            };
+        }
+
+        function confirmDialog({ title = 'Are you sure?', body = '', confirmText = 'Confirm', danger = true }) {
+            return new Promise((resolve) => {
+                const overlay = document.createElement('div');
+                overlay.className = 'modal-overlay';
+                overlay.innerHTML = `
+                    <div class="modal-box">
+                        <div class="modal-title">${title}</div>
+                        <div class="modal-body">${body}</div>
+                        <div class="modal-actions">
+                            <button class="btn" data-action="cancel">Cancel</button>
+                            <button class="btn ${danger ? 'btn-danger' : 'btn-primary'}" data-action="confirm">${confirmText}</button>
+                        </div>
+                    </div>`;
+                document.body.appendChild(overlay);
+                overlay.addEventListener('click', (e) => {
+                    if (e.target === overlay || e.target.dataset.action === 'cancel') {
+                        overlay.remove();
+                        resolve(false);
+                    } else if (e.target.dataset.action === 'confirm') {
+                        overlay.remove();
+                        resolve(true);
+                    }
+                });
+            });
+        }
+    </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const stack = document.getElementById('toastStack');
+            if (!stack) return;
+            Array.from(stack.children).forEach((toast, i) => {
+                setTimeout(() => toast.remove(), 4200 + i * 150);
+            });
+        });
+    </script>
+    <!-- <script src="{% static 'core/js/utils.js' %}"></script>
+    <script src="{% static 'core/js/toast.js' %}"></script> -->
+    {% block extra_js %}{% endblock %}
+</body>
+
+</html>
