@@ -1,0 +1,168 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Create account — Kanban Tracker{% endblock %}
+{% block extra_css %}
+<!-- <link rel="stylesheet" href="{% static 'accounts/css/auth.css' %}"> -->
+<style>
+    .auth-wrapper {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background:
+            radial-gradient(circle at 15% 20%, rgba(47, 129, 247, 0.10), transparent 40%),
+            radial-gradient(circle at 85% 80%, rgba(63, 185, 80, 0.08), transparent 40%),
+            var(--bg);
+        padding: 24px;
+    }
+
+    .auth-card {
+        width: 400px;
+        max-width: 100%;
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-lg);
+        padding: 32px;
+        animation: popIn 0.25s ease;
+    }
+
+    .auth-logo {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 22px;
+    }
+
+    .auth-logo .mark {
+        width: 34px;
+        height: 34px;
+        border-radius: 9px;
+        background: var(--primary);
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 15px;
+    }
+
+    .auth-logo .name {
+        font-size: 16px;
+        font-weight: 700;
+    }
+
+    .auth-title {
+        font-size: 20px;
+        margin-bottom: 4px;
+    }
+
+    .auth-subtitle {
+        color: var(--text-secondary);
+        font-size: 13px;
+        margin-bottom: 22px;
+    }
+
+    .auth-footer {
+        margin-top: 18px;
+        text-align: center;
+        font-size: 13px;
+        color: var(--text-secondary);
+    }
+
+    .auth-links {
+        display: flex;
+        justify-content: space-between;
+        font-size: 12px;
+        margin-top: -6px;
+        margin-bottom: 16px;
+    }
+
+    .auth-divider {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin: 18px 0;
+        color: var(--text-muted);
+        font-size: 12px;
+    }
+
+    .auth-divider::before,
+    .auth-divider::after {
+        content: "";
+        flex: 1;
+        height: 1px;
+        background: var(--border);
+    }
+</style>
+{% endblock %}
+{% block content %}
+<div class="auth-wrapper">
+    <div class="auth-card">
+        <div class="auth-logo">
+            <div class="mark">K</div>
+            <div class="name">Kanban Tracker</div>
+        </div>
+        <div class="auth-title">Create your account</div>
+        <div class="auth-subtitle">Start tracking your team's progress today.</div>
+
+        <form method="post" novalidate id="registerForm">
+            {% csrf_token %}
+            <div class="form-group">
+                <label class="form-label">Full Name</label>
+                <input class="form-control" type="text" name="first_name" value="{{ form.first_name.value|default_if_none:'' }}" required autofocus>
+                {% if form.first_name.errors %}<div class="form-error">{{ form.first_name.errors.0 }}</div>{% endif %}
+            </div>
+            <div class="form-group">
+                <label class="form-label">Username</label>
+                <input class="form-control" type="text" name="username" value="{{ form.username.value|default_if_none:'' }}" required>
+                {% if form.username.errors %}<div class="form-error">{{ form.username.errors.0 }}</div>{% endif %}
+            </div>
+            <div class="form-group">
+                <label class="form-label">Email</label>
+                <input class="form-control" type="email" name="email" value="{{ form.email.value|default_if_none:'' }}" required>
+                {% if form.email.errors %}<div class="form-error">{{ form.email.errors.0 }}</div>{% endif %}
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Password</label>
+                    <div class="password-field">
+                        <input class="form-control" type="password" id="pw1" name="password1" required>
+                        <button type="button" class="password-toggle" onclick="togglePassword('pw1', this)">SHOW</button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Confirm</label>
+                    <div class="password-field">
+                        <input class="form-control" type="password" id="pw2" name="password2" required>
+                        <button type="button" class="password-toggle" onclick="togglePassword('pw2', this)">SHOW</button>
+                    </div>
+                </div>
+            </div>
+            {% if form.password2.errors %}<div class="form-error">{{ form.password2.errors.0 }}</div>{% endif %}
+            {% if form.non_field_errors %}<div class="form-error">{{ form.non_field_errors.0 }}</div>{% endif %}
+            <div class="form-hint">Minimum 8 characters. Avoid common passwords.</div>
+            <button class="btn btn-primary btn-block mt-16" type="submit">Create Account</button>
+        </form>
+
+        <div class="auth-divider">or</div>
+        <div class="auth-footer">
+            Already have an account? <a href="{% url 'accounts:login' %}">Sign in</a>
+        </div>
+    </div>
+</div>
+<script>
+function togglePassword(id, btn) {
+    const input = document.getElementById(id);
+    const isPwd = input.type === 'password';
+    input.type = isPwd ? 'text' : 'password';
+    btn.textContent = isPwd ? 'HIDE' : 'SHOW';
+}
+document.getElementById('registerForm').addEventListener('submit', function(e) {
+    if (this.password1.value !== this.password2.value) {
+        e.preventDefault();
+        showToast('Passwords do not match.', 'warning');
+    }
+});
+</script>
+{% endblock %}
