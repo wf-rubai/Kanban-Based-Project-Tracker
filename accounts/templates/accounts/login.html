@@ -1,0 +1,153 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Sign in — Kanban Tracker{% endblock %}
+{% block extra_css %}
+<!-- <link rel="stylesheet" href="{% static 'accounts/css/auth.css' %}"> -->
+<style>
+    .auth-wrapper {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background:
+            radial-gradient(circle at 15% 20%, rgba(47, 129, 247, 0.10), transparent 40%),
+            radial-gradient(circle at 85% 80%, rgba(63, 185, 80, 0.08), transparent 40%),
+            var(--bg);
+        padding: 24px;
+    }
+
+    .auth-card {
+        width: 400px;
+        max-width: 100%;
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-lg);
+        padding: 32px;
+        animation: popIn 0.25s ease;
+    }
+
+    .auth-logo {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 22px;
+    }
+
+    .auth-logo .mark {
+        width: 34px;
+        height: 34px;
+        border-radius: 9px;
+        background: var(--primary);
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 15px;
+    }
+
+    .auth-logo .name {
+        font-size: 16px;
+        font-weight: 700;
+    }
+
+    .auth-title {
+        font-size: 20px;
+        margin-bottom: 4px;
+    }
+
+    .auth-subtitle {
+        color: var(--text-secondary);
+        font-size: 13px;
+        margin-bottom: 22px;
+    }
+
+    .auth-footer {
+        margin-top: 18px;
+        text-align: center;
+        font-size: 13px;
+        color: var(--text-secondary);
+    }
+
+    .auth-links {
+        display: flex;
+        justify-content: space-between;
+        font-size: 12px;
+        margin-top: -6px;
+        margin-bottom: 16px;
+    }
+
+    .auth-divider {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin: 18px 0;
+        color: var(--text-muted);
+        font-size: 12px;
+    }
+
+    .auth-divider::before,
+    .auth-divider::after {
+        content: "";
+        flex: 1;
+        height: 1px;
+        background: var(--border);
+    }
+</style>
+{% endblock %}
+{% block content %}
+<div class="auth-wrapper">
+    <div class="auth-card">
+        <div class="auth-logo">
+            <div class="mark">K</div>
+            <div class="name">Kanban Tracker</div>
+        </div>
+        <div class="auth-title">Welcome back</div>
+        <div class="auth-subtitle">Sign in to continue to your projects.</div>
+
+        <form method="post" novalidate id="loginForm">
+            {% csrf_token %}
+            <div class="form-group">
+                <label class="form-label">Username or Email</label>
+                <input class="form-control" type="text" name="username" value="{{ form.username.value|default_if_none:'' }}" required autofocus>
+                {% if form.username.errors %}<div class="form-error">{{ form.username.errors.0 }}</div>{% endif %}
+            </div>
+            <div class="form-group">
+                <label class="form-label">Password</label>
+                <div class="password-field">
+                    <input class="form-control" type="password" id="loginPassword" name="password" required>
+                    <button type="button" class="password-toggle" onclick="togglePassword('loginPassword', this)">SHOW</button>
+                </div>
+                {% if form.password.errors %}<div class="form-error">{{ form.password.errors.0 }}</div>{% endif %}
+            </div>
+            <div class="auth-links">
+                <label class="checkbox-row"><input type="checkbox" name="remember_me" checked> Remember me</label>
+                <a href="{% url 'accounts:forgot_password' %}">Forgot password?</a>
+            </div>
+            <button class="btn btn-primary btn-block" type="submit">Sign In</button>
+        </form>
+
+        <div class="auth-divider">or</div>
+        <div class="auth-footer">
+            Don't have an account? <a href="{% url 'accounts:register' %}">Create one</a>
+        </div>
+    </div>
+</div>
+<script>
+function togglePassword(id, btn) {
+    const input = document.getElementById(id);
+    const isPwd = input.type === 'password';
+    input.type = isPwd ? 'text' : 'password';
+    btn.textContent = isPwd ? 'HIDE' : 'SHOW';
+}
+document.getElementById('loginForm').addEventListener('submit', function(e) {
+    const u = this.username.value.trim();
+    const p = this.password.value;
+    if (!u || !p) {
+        e.preventDefault();
+        showToast('Please fill in both fields.', 'warning');
+    }
+});
+</script>
+{% endblock %}
