@@ -1,0 +1,1252 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Project Manager — Kanban Tracker{% endblock %}
+{% block extra_css %}
+{% comment %} <link rel="stylesheet" href="{% static 'projects/css/project_manager.css' %}"> {% endcomment %}
+<style>
+    /* ==========================================================================
+   App shell / topbar
+   ========================================================================== */
+    .app-shell {
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+    }
+
+    .topbar {
+        height: 52px;
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 20px;
+        border-bottom: 1px solid var(--border);
+        background: var(--bg-elevated);
+    }
+
+    .topbar-brand {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-weight: 700;
+        font-size: 15px;
+    }
+
+    .topbar-brand .mark {
+        width: 28px;
+        height: 28px;
+        border-radius: 8px;
+        background: var(--primary);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        font-size: 13px;
+    }
+
+    .topbar-user {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .avatar-pill {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 11px;
+        font-weight: 700;
+        color: #fff;
+        flex-shrink: 0;
+    }
+
+    /* ==========================================================================
+   Panels layout
+   ========================================================================== */
+    .panels {
+        flex: 1;
+        display: flex;
+        overflow: hidden;
+    }
+
+    .panel {
+        border-right: 1px solid var(--border);
+    }
+
+    .panel:last-child {
+        border-right: none;
+    }
+
+    .panel-left {
+        width: var(--panel-left-width);
+        flex-shrink: 0;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+
+    .panel-right {
+        width: var(--panel-right-width);
+        flex-shrink: 0;
+        overflow-y: auto;
+        background: var(--bg-elevated);
+    }
+
+    .panel-center {
+        flex: 1;
+        overflow-y: auto;
+        padding: 24px 32px 80px;
+        background: var(--bg);
+    }
+
+    .panel-header {
+        padding: 16px 16px 12px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border-bottom: 1px solid var(--border-muted);
+    }
+
+    .panel-header h3 {
+        font-size: 14px;
+        margin: 0;
+    }
+
+    .panel-body {
+        flex: 1;
+        overflow-y: auto;
+        padding: 12px;
+    }
+
+    .panel-footer {
+        padding: 12px;
+        border-top: 1px solid var(--border-muted);
+    }
+
+    /* ==========================================================================
+   Left panel — project cards
+   ========================================================================== */
+    .project-section {
+        margin-bottom: 20px;
+    }
+
+    .project-section-title {
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--text-muted);
+        margin-bottom: 8px;
+        padding: 0 4px;
+    }
+
+    .project-card {
+        display: block;
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        padding: 10px 12px;
+        margin-bottom: 8px;
+        cursor: pointer;
+        transition: border-color var(--transition), background var(--transition), transform var(--transition);
+        color: var(--text);
+    }
+
+    .project-card:hover {
+        border-color: var(--primary);
+        background: var(--card-hover);
+        text-decoration: none;
+    }
+
+    .project-card.active {
+        border-color: var(--primary);
+        background: var(--primary-soft);
+    }
+
+    .project-card-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 4px;
+    }
+
+    .project-name {
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+    .project-card-meta {
+        font-size: 11px;
+        color: var(--text-muted);
+        display: flex;
+        gap: 6px;
+    }
+
+    /* ==========================================================================
+   Right panel — shared header/body
+   ========================================================================== */
+    .right-panel-header {
+        padding: 16px;
+        border-bottom: 1px solid var(--border-muted);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .right-panel-header h3 {
+        font-size: 14px;
+        margin: 0;
+    }
+
+    .right-panel-body {
+        padding: 16px;
+    }
+
+    .member-card,
+    .search-result-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px;
+        border-radius: var(--radius-sm);
+        margin-bottom: 6px;
+        transition: background var(--transition);
+    }
+
+    .member-card:hover {
+        background: var(--card);
+    }
+
+    .member-info {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .member-name {
+        font-size: 13px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .member-role {
+        font-size: 11px;
+    }
+
+    /* ==========================================================================
+   Center panel — blocks
+   ========================================================================== */
+    .center-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 20px;
+        /* gap: 16px; */
+        flex-wrap: wrap;
+    }
+
+    .center-header h2 {
+        font-size: 20px;
+        margin-bottom: 2px;
+    }
+
+    .center-header-actions {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .block-list {
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+    }
+
+    .block {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-sm);
+        overflow: hidden;
+        transition: border-color var(--transition);
+    }
+
+    .block:hover {
+        border-color: var(--text-muted);
+    }
+
+    .block-toolbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 8px 14px;
+        border-bottom: 1px solid var(--border-muted);
+        background: var(--bg-elevated);
+        font-size: 12px;
+    }
+
+    .block-meta {
+        display: flex;
+        gap: 6px;
+        align-items: center;
+    }
+
+    .block-type-label {
+        font-weight: 600;
+        color: var(--text-secondary);
+    }
+
+    .block-actions {
+        display: flex;
+        gap: 2px;
+    }
+
+    .block-actions .btn {
+        font-size: 11px;
+        padding: 4px 8px;
+    }
+
+    /* Text block */
+    .text-editor-toolbar {
+        display: flex;
+        align-items: center;
+        gap: 2px;
+        flex-wrap: wrap;
+        padding: 6px 10px;
+        border-bottom: 1px solid var(--border-muted);
+    }
+
+    .text-editor-toolbar .btn {
+        padding: 4px 8px;
+        font-size: 12px;
+    }
+
+    .toolbar-sep {
+        width: 1px;
+        height: 18px;
+        background: var(--border);
+        margin: 0 4px;
+    }
+
+    .save-indicator {
+        margin-left: auto;
+        font-size: 11px;
+        color: var(--text-muted);
+    }
+
+    .save-indicator.saving {
+        color: var(--warning);
+    }
+
+    .save-indicator.saved {
+        color: var(--success);
+    }
+
+    .text-editor-content {
+        padding: 16px 18px;
+        min-height: 90px;
+        outline: none;
+        font-size: 14px;
+        line-height: 1.7;
+    }
+
+    .text-editor-content h2 {
+        font-size: 18px;
+        margin-top: 0;
+    }
+
+    .text-editor-content h3 {
+        font-size: 15px;
+    }
+
+    .text-editor-content blockquote {
+        border-left: 3px solid var(--primary);
+        margin: 8px 0;
+        padding: 4px 12px;
+        color: var(--text-secondary);
+    }
+
+    .text-editor-content pre {
+        background: var(--bg-elevated);
+        border: 1px solid var(--border-muted);
+        padding: 10px;
+        border-radius: 6px;
+        font-family: var(--font-mono);
+        overflow-x: auto;
+    }
+
+    .text-editor-content ul,
+    .text-editor-content ol {
+        padding-left: 24px;
+    }
+
+    .text-editor-content hr {
+        border: none;
+        border-top: 1px solid var(--border);
+        margin: 14px 0;
+    }
+
+    /* Table block */
+    .table-block-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 14px;
+        border-bottom: 1px solid var(--border-muted);
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    .table-title-input {
+        background: transparent;
+        border: none;
+        color: var(--text);
+        font-size: 14px;
+        font-weight: 600;
+        flex: 1;
+        min-width: 120px;
+    }
+
+    .table-title-input:focus {
+        outline: none;
+    }
+
+    .table-block-toolbar {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        position: sticky;
+        top: 0;
+    }
+
+    .view-toggle {
+        display: flex;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        overflow: hidden;
+    }
+
+    .view-toggle-btn {
+        background: var(--bg-elevated);
+        border: none;
+        color: var(--text-secondary);
+        padding: 5px 10px;
+        font-size: 12px;
+        cursor: pointer;
+        transition: background var(--transition);
+    }
+
+    .view-toggle-btn.active {
+        background: var(--primary);
+        color: #fff;
+    }
+
+    .table-block-body {
+        max-height: 480px;
+        overflow-y: auto;
+    }
+
+    .row-view-scroll {
+        overflow-x: auto;
+    }
+
+    .story-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+    }
+
+    .story-table th {
+        text-align: left;
+        padding: 8px 12px;
+        background: var(--bg-elevated);
+        color: var(--text-secondary);
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+        position: sticky;
+        top: 0;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .story-table td {
+        padding: 8px 12px;
+        border-bottom: 1px solid var(--border-muted);
+        vertical-align: top;
+    }
+
+    .story-table .col-name {
+        min-width: 200px;
+    }
+
+    .story-link {
+        color: var(--text);
+        font-weight: 600;
+    }
+
+    .story-link:hover {
+        color: var(--primary);
+        text-decoration: underline;
+        cursor: pointer;
+    }
+
+    .story-row-meta {
+        font-size: 11px;
+        margin-top: 2px;
+    }
+
+    .ts-cell {
+        font-size: 12px;
+        color: var(--text-secondary);
+        white-space: nowrap;
+    }
+
+    .ts-cell.ts-active {
+        background: var(--primary-soft);
+        color: var(--primary);
+        font-weight: 600;
+        border-radius: 4px;
+    }
+
+    .story-row:hover {
+        background: var(--card-hover);
+    }
+
+    /* Kanban column view */
+    .kanban-columns {
+        display: flex;
+        gap: 12px;
+        overflow-x: auto;
+        padding: 14px;
+    }
+
+    .kanban-column {
+        min-width: 220px;
+        flex-shrink: 0;
+        background: var(--bg-elevated);
+        border-radius: var(--radius-sm);
+        border: 1px solid var(--border-muted);
+    }
+
+    .kanban-column-header {
+        padding: 10px 12px;
+        border-bottom: 1px solid var(--border-muted);
+        position: sticky;
+        top: 0;
+        background: var(--bg-elevated);
+    }
+
+    .kanban-column-body {
+        padding: 10px;
+        min-height: 60px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .kanban-column-body.drag-over {
+        background: var(--primary-soft);
+        border-radius: var(--radius-sm);
+    }
+
+    .kanban-card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        padding: 10px;
+        box-shadow: var(--shadow-sm);
+        cursor: grab;
+        transition: transform var(--transition), border-color var(--transition);
+    }
+
+    .kanban-card:hover {
+        border-color: var(--primary);
+        transform: translateY(-1px);
+    }
+
+    .kanban-card.dragging {
+        opacity: 0.4;
+    }
+
+    .kanban-card-top {
+        margin-bottom: 6px;
+    }
+
+    .kanban-card-name {
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        margin-bottom: 4px;
+    }
+
+    .kanban-card-name:hover {
+        color: var(--primary);
+    }
+
+    .kanban-card-note {
+        font-size: 12px;
+        margin-bottom: 6px;
+    }
+
+    .kanban-card-footer {
+        font-size: 11px;
+    }
+
+    /* ==========================================================================
+   Story detail / status buttons
+   ========================================================================== */
+    .story-detail-name {
+        font-size: 16px;
+        font-weight: 700;
+    }
+
+    .story-detail-section {
+        margin: 16px 0;
+    }
+
+    .status-buttons {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+
+    .ts-table {
+        width: 100%;
+        font-size: 12px;
+        border-collapse: collapse;
+    }
+
+    .ts-table td {
+        padding: 4px 0;
+        border-bottom: 1px solid var(--border-muted);
+    }
+
+    .ts-active-row td:first-child {
+        color: var(--primary);
+        font-weight: 600;
+    }
+
+    /* Comments */
+    .comment-item {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 14px;
+    }
+
+    .comment-meta {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        margin-bottom: 2px;
+    }
+
+    .comment-author {
+        font-size: 12px;
+        font-weight: 700;
+    }
+
+    .comment-body {
+        font-size: 13px;
+        color: var(--text);
+    }
+
+    .comment-input-row {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin-top: 12px;
+    }
+
+    /* Summary */
+    .summary-markdown {
+        font-size: 13px;
+        line-height: 1.7;
+        white-space: pre-wrap;
+    }
+
+    /* ==========================================================================
+   Responsive
+   ========================================================================== */
+    @media (max-width: 1024px) {
+        :root {
+            --panel-left-width: 240px;
+            --panel-right-width: 280px;
+        }
+    }
+
+    @media (max-width: 860px) {
+        .panels {
+            flex-direction: column;
+            overflow-y: auto;
+        }
+
+        .panel-left,
+        .panel-right {
+            width: 100%;
+            max-height: 260px;
+        }
+
+        .panel-center {
+            padding: 16px;
+        }
+    }
+</style>
+{% endblock %}
+{% block content %}
+<div class="app-shell">
+    <header class="topbar">
+        <div class="topbar-brand">
+            <div class="mark">K</div>
+            <span>Progress Tracker</span>
+        </div>
+        <div class="topbar-user">
+            <span class="text-secondary">{{ request.user.get_full_name|default:request.user.username }}</span>
+            <span class="avatar-pill" style="background:{{ request.user.avatar_color }}">{{ request.user.initials }}</span>
+            <a href="{% url 'accounts:logout' %}" class="btn btn-sm btn-ghost">Logout</a>
+        </div>
+    </header>
+
+    <div class="panels">
+        <aside class="panel panel-left" id="leftPanel">
+            {% include "projects/partials/left_panel.html" %}
+        </aside>
+
+        <main class="panel panel-center" id="centerPanel">
+            {% include "projects/partials/center_panel.html" %}
+        </main>
+
+        <aside class="panel panel-right" id="rightPanel">
+            {% if selected_project %}
+            {% include "projects/partials/member_window.html" with members=members %}
+            {% else %}
+            <div class="empty-state">
+                <div class="empty-icon-text">No Project Selected</div>
+                <div class="empty-title">Create or select a project to get started.</div>
+            </div>
+            {% endif %}
+        </aside>
+    </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+
+/* Block-level actions: create, move up/down, delete, duplicate, collapse. */
+<script>
+
+function replaceCenterPanel(html) {
+    document.getElementById('centerPanel').innerHTML = html;
+}
+
+document.addEventListener('click', async (e) => {
+    if (e.target.id === 'btnAddTextBlock' || e.target.id === 'btnAddTableBlock') {
+        const projectId = e.target.dataset.projectId;
+        const blockType = e.target.id === 'btnAddTextBlock' ? 'text' : 'table';
+        const body = new FormData();
+        body.append('block_type', blockType);
+        try {
+            const res = await apiFetch(`/projects/${projectId}/blocks/create/`, { method: 'POST', body });
+            replaceCenterPanel(res.data.html);
+            showToast(blockType === 'text' ? 'Text block added.' : 'Kanban table added.', 'success');
+        } catch (err) {
+            showToast(err.message, 'error');
+        }
+        return;
+    }
+
+    const actionBtn = e.target.closest('.btn-block-action');
+    if (actionBtn) {
+        const blockEl = actionBtn.closest('.block');
+        const projectId = blockEl.dataset.projectId;
+        const blockId = blockEl.dataset.blockId;
+        const action = actionBtn.dataset.action;
+
+        try {
+            let res;
+            if (action === 'move-up' || action === 'move-down') {
+                const body = new FormData();
+                body.append('direction', action === 'move-up' ? 'up' : 'down');
+                res = await apiFetch(`/projects/${projectId}/blocks/${blockId}/move/`, { method: 'POST', body });
+            } else if (action === 'delete') {
+                const confirmed = await confirmDialog({
+                    title: 'Delete this block?',
+                    body: 'This will permanently remove the block and everything inside it (stories, comments, etc. if a table block).',
+                    confirmText: 'Delete Block',
+                });
+                if (!confirmed) return;
+                res = await apiFetch(`/projects/${projectId}/blocks/${blockId}/delete/`, { method: 'POST' });
+            } else if (action === 'duplicate') {
+                res = await apiFetch(`/projects/${projectId}/blocks/${blockId}/duplicate/`, { method: 'POST' });
+            } else if (action === 'collapse') {
+                res = await apiFetch(`/projects/${projectId}/blocks/${blockId}/collapse/`, { method: 'POST' });
+            }
+            if (res) replaceCenterPanel(res.data.html);
+        } catch (err) {
+            showToast(err.message, 'error');
+        }
+    }
+});
+</script>
+/* Story comment posting. */
+<script>
+
+document.addEventListener('click', async (e) => {
+    if (e.target.id === 'btnSendComment') {
+        const storyId = e.target.dataset.storyId;
+        const input = document.getElementById('commentInput');
+        const body = input.value.trim();
+        if (!body) { showToast('Comment cannot be empty.', 'warning'); return; }
+        try {
+            const res = await apiFetch(`/comments/story/${storyId}/add/`, {
+                method: 'POST',
+                body: JSON.stringify({ body }),
+            });
+            document.getElementById('commentsList').innerHTML = res.data.html;
+            input.value = '';
+        } catch (err) {
+            showToast(err.message, 'error');
+        }
+    }
+});
+</script>
+/* Kanban table block: view toggle (row/column), add-story button, and optional drag-and-drop between columns in Column View. */
+<script>
+
+document.addEventListener('click', async (e) => {
+    const viewBtn = e.target.closest('.view-toggle-btn');
+    if (viewBtn) {
+        const toggleWrap = viewBtn.closest('.view-toggle');
+        const blockEl = viewBtn.closest('.block');
+        const projectId = blockEl.dataset.projectId;
+        const blockId = toggleWrap.dataset.blockId;
+        const mode = viewBtn.dataset.mode;
+        try {
+            const res = await apiFetch(`/projects/${projectId}/blocks/${blockId}/table/view/`, {
+                method: 'POST',
+                body: JSON.stringify({ view_mode: mode }),
+            });
+            replaceCenterPanel(res.data.html);
+        } catch (err) {
+            showToast(err.message, 'error');
+        }
+        return;
+    }
+
+    const addStoryBtn = e.target.closest('.btn-add-story');
+    if (addStoryBtn) {
+        const tableId = addStoryBtn.dataset.tableId;
+        try {
+            const res = await apiFetch(`/stories/table/${tableId}/new-form/`);
+            RightPanel.setHTML(res.data.html);
+        } catch (err) {
+            showToast(err.message, 'error');
+        }
+    }
+});
+
+/* Drag and drop between Kanban columns (optional enhancement). */
+document.addEventListener('dragstart', (e) => {
+    const card = e.target.closest('.kanban-card');
+    if (card) {
+        card.classList.add('dragging');
+        e.dataTransfer.setData('text/plain', card.dataset.storyId);
+    }
+});
+document.addEventListener('dragend', (e) => {
+    const card = e.target.closest('.kanban-card');
+    if (card) card.classList.remove('dragging');
+});
+document.addEventListener('dragover', (e) => {
+    const col = e.target.closest('.kanban-column-body');
+    if (col) {
+        e.preventDefault();
+        col.classList.add('drag-over');
+    }
+});
+document.addEventListener('dragleave', (e) => {
+    const col = e.target.closest('.kanban-column-body');
+    if (col) col.classList.remove('drag-over');
+});
+document.addEventListener('drop', async (e) => {
+    const col = e.target.closest('.kanban-column-body');
+    if (!col) return;
+    e.preventDefault();
+    col.classList.remove('drag-over');
+    const storyId = e.dataTransfer.getData('text/plain');
+    const newStatus = col.dataset.status;
+    if (!storyId || !newStatus) return;
+    try {
+        const res = await apiFetch(`/stories/${storyId}/status/`, {
+            method: 'POST',
+            body: JSON.stringify({ status: newStatus }),
+        });
+        replaceCenterPanel(res.data.center_html);
+        showToast('Story moved to ' + newStatus.replace('_', ' ') + '.', 'success');
+    } catch (err) {
+        showToast(err.message, 'error');
+    }
+});
+</script>
+/* Member Window: search users, invite, remove. Owner-only actions. */
+<script>
+
+document.addEventListener('click', (e) => {
+    if (e.target.id === 'btnAddMember') {
+        const area = document.getElementById('memberSearchArea');
+        area.classList.toggle('hidden');
+        if (!area.classList.contains('hidden')) document.getElementById('memberSearchInput').focus();
+    }
+});
+
+document.addEventListener('input', debounce(async (e) => {
+    if (e.target.id === 'memberSearchInput') {
+        const projectId = document.getElementById('memberWindowBody').dataset.projectId;
+        const q = e.target.value.trim();
+        const resultsEl = document.getElementById('memberSearchResults');
+        if (!q) { resultsEl.innerHTML = ''; return; }
+        try {
+            const res = await apiFetch(`/projects/${projectId}/members/search/?q=${encodeURIComponent(q)}`);
+            resultsEl.innerHTML = res.data.html;
+        } catch (err) {
+            showToast(err.message, 'error');
+        }
+    }
+}, 350));
+
+document.addEventListener('click', async (e) => {
+    const inviteBtn = e.target.closest('.btn-invite-user');
+    if (inviteBtn) {
+        const projectId = document.getElementById('memberWindowBody').dataset.projectId;
+        const userId = inviteBtn.dataset.userId;
+        try {
+            const res = await apiFetch(`/projects/${projectId}/members/add/`, {
+                method: 'POST',
+                body: JSON.stringify({ user_id: userId }),
+            });
+            RightPanel.setHTML(res.data.html);
+            showToast('Member added.', 'success');
+        } catch (err) {
+            showToast(err.message, 'error');
+        }
+        return;
+    }
+
+    const removeBtn = e.target.closest('.btn-remove-member');
+    if (removeBtn) {
+        const projectId = document.getElementById('memberWindowBody').dataset.projectId;
+        const userId = removeBtn.dataset.userId;
+        const confirmed = await confirmDialog({
+            title: 'Remove member?',
+            body: 'This user will lose access to this project.',
+            confirmText: 'Remove',
+        });
+        if (!confirmed) return;
+        try {
+            const res = await apiFetch(`/projects/${projectId}/members/remove/`, {
+                method: 'POST',
+                body: JSON.stringify({ user_id: userId }),
+            });
+            RightPanel.setHTML(res.data.html);
+            showToast('Member removed.', 'success');
+        } catch (err) {
+            showToast(err.message, 'error');
+        }
+    }
+});
+</script>
+/*
+ * Manages the RIGHT PANEL contents. Per the spec, the right panel always
+ * resets to the "Member Window" whenever a project loads, the page
+ * refreshes, or another panel is explicitly closed.
+ */
+<script>
+const RightPanel = {
+    el: null,
+
+    init() {
+        this.el = document.getElementById('rightPanel');
+    },
+
+    setHTML(html) {
+        this.el.innerHTML = html;
+        document.dispatchEvent(new CustomEvent('rightpanel:updated'));
+    },
+
+    async showMemberWindow(projectId) {
+        try {
+            const res = await apiFetch(`/projects/${projectId}/members/`);
+            this.setHTML(res.data.html);
+        } catch (e) {
+            showToast(e.message, 'error');
+        }
+    },
+};
+
+document.addEventListener('DOMContentLoaded', () => RightPanel.init());
+</script>
+/* Project creation / deletion, wired to the LEFT PANEL and RIGHT PANEL. */
+<script>
+
+document.addEventListener('click', async (e) => {
+    if (e.target.id === 'btnCreateProject') {
+        try {
+            const res = await apiFetch('/projects/new/form/');
+            RightPanel.setHTML(res.data.html);
+        } catch (err) {
+            showToast(err.message, 'error');
+        }
+    }
+
+    if (e.target.id === 'btnCancelCreateProject') {
+        const projectId = document.querySelector('#leftPanel .project-card.active')?.dataset.projectId;
+        if (projectId) RightPanel.showMemberWindow(projectId);
+        else RightPanel.setHTML('<div class="empty-state"><div class="empty-title">Select a project.</div></div>');
+    }
+
+    if (e.target.id === 'btnDeleteProject') {
+        const projectId = e.target.dataset.projectId;
+        const name = e.target.textContent.replace('Delete', '').trim();
+        const confirmed = await confirmDialog({
+            title: 'Delete Project?',
+            body: `This will permanently delete ${name} and all of its blocks, stories, and comments. This cannot be undone.`,
+            confirmText: 'Delete Project',
+        });
+        if (!confirmed) return;
+        try {
+            const res = await apiFetch(`/projects/${projectId}/delete/`, { method: 'POST' });
+            window.location.href = res.data.redirect;
+        } catch (err) {
+            showToast(err.message, 'error');
+        }
+    }
+});
+
+document.addEventListener('submit', async (e) => {
+    if (e.target.id === 'createProjectForm') {
+        e.preventDefault();
+        const form = e.target;
+        const formData = new FormData(form);
+        try {
+            const res = await apiFetch('/projects/create/', { method: 'POST', body: formData });
+            showToast('Project created!', 'success');
+            window.location.href = res.data.redirect;
+        } catch (err) {
+            showToast(err.message, 'error');
+            if (err.data && err.data.html) RightPanel.setHTML(err.data.html);
+        }
+    }
+});
+</script>
+/* Story creation, editing, detail viewing, and status updates. */
+<script>
+
+document.addEventListener('click', async (e) => {
+    const storyLink = e.target.closest('.story-link');
+    if (storyLink) {
+        e.preventDefault();
+        const storyId = storyLink.dataset.storyId;
+        try {
+            const res = await apiFetch(`/stories/${storyId}/`);
+            RightPanel.setHTML(res.data.html);
+        } catch (err) {
+            showToast(err.message, 'error');
+        }
+        return;
+    }
+
+    if (e.target.id === 'btnCancelStoryForm' || e.target.id === 'btnCloseStoryDetail') {
+        const projectId = document.querySelector('#leftPanel .project-card.active')?.dataset.projectId;
+        if (projectId) RightPanel.showMemberWindow(projectId);
+        return;
+    }
+
+    if (e.target.id === 'btnEditStory') {
+        const storyId = e.target.dataset.storyId;
+        try {
+            const res = await apiFetch(`/stories/${storyId}/edit-form/`);
+            RightPanel.setHTML(res.data.html);
+        } catch (err) {
+            showToast(err.message, 'error');
+        }
+        return;
+    }
+
+    const statusBtn = e.target.closest('.status-btn');
+    if (statusBtn) {
+        const storyId = statusBtn.dataset.storyId;
+        const status = statusBtn.dataset.status;
+        try {
+            const res = await apiFetch(`/stories/${storyId}/status/`, {
+                method: 'POST',
+                body: JSON.stringify({ status }),
+            });
+            RightPanel.setHTML(res.data.html);
+            replaceCenterPanel(res.data.center_html);
+            showToast('Status updated.', 'success');
+        } catch (err) {
+            showToast(err.message, 'error');
+        }
+    }
+});
+
+document.addEventListener('submit', async (e) => {
+    if (e.target.id === 'storyForm') {
+        e.preventDefault();
+        const form = e.target;
+        const mode = form.dataset.mode;
+        const formData = new FormData(form);
+        try {
+            let res;
+            if (mode === 'edit') {
+                const storyId = form.dataset.storyId;
+                res = await apiFetch(`/stories/${storyId}/update/`, { method: 'POST', body: formData });
+                RightPanel.setHTML(res.data.html);
+                if (res.data.center_html) replaceCenterPanel(res.data.center_html);
+                showToast('Story updated.', 'success');
+            } else {
+                const tableId = form.dataset.tableId;
+                res = await apiFetch(`/stories/table/${tableId}/create/`, { method: 'POST', body: formData });
+                if (res.data.close_panel) {
+                    const projectId = document.querySelector('#leftPanel .project-card.active')?.dataset.projectId;
+                    if (projectId) RightPanel.showMemberWindow(projectId);
+                }
+                if (res.data.center_html) replaceCenterPanel(res.data.center_html);
+                showToast('Story created.', 'success');
+            }
+        } catch (err) {
+            showToast(err.message, 'error');
+            if (err.data && err.data.html) RightPanel.setHTML(err.data.html);
+        }
+    }
+});
+</script>
+/* AI Progress Summarizer panel. */
+<script>
+
+document.addEventListener('click', async (e) => {
+    if (e.target.id === 'btnGenerateSummary') {
+        const projectId = e.target.dataset.projectId;
+        try {
+            const res = await apiFetch(`/summarizer/project/${projectId}/`);
+            RightPanel.setHTML(res.data.html);
+        } catch (err) {
+            showToast(err.message, 'error');
+        }
+        return;
+    }
+
+    if (e.target.id === 'btnCloseSummary') {
+        const projectId = document.querySelector('#leftPanel .project-card.active')?.dataset.projectId;
+        if (projectId) RightPanel.showMemberWindow(projectId);
+        return;
+    }
+
+    if (e.target.id === 'btnRegenerateSummary') {
+        const projectId = e.target.dataset.projectId;
+        e.target.disabled = true;
+        e.target.innerHTML = '<span class="spinner"></span> Generating...';
+        try {
+            const res = await apiFetch(`/summarizer/project/${projectId}/generate/`, { method: 'POST' });
+            RightPanel.setHTML(res.data.html);
+            showToast('Summary generated.', 'success');
+        } catch (err) {
+            showToast(err.message, 'error');
+        }
+    }
+});
+
+</script>
+/* Colab-style rich text block editor. Autosaves on click-outside/blur. */
+<script>
+
+document.addEventListener('click', (e) => {
+    const cmdBtn = e.target.closest('.text-editor-toolbar .btn[data-cmd]');
+    if (cmdBtn) {
+        e.preventDefault();
+        const toolbar = cmdBtn.closest('.text-editor-toolbar');
+        const content = toolbar.nextElementSibling;
+        content.focus();
+        const cmd = cmdBtn.dataset.cmd;
+        const value = cmdBtn.dataset.value || null;
+
+        if (cmd === 'insertChecklist') {
+            document.execCommand('insertHTML', false, '<div><input type="checkbox"> New item</div>');
+        } else {
+            document.execCommand(cmd, false, value);
+        }
+        markUnsaved(content);
+        return;
+    }
+});
+
+// Autosave: click outside a text editor -> save it.
+document.addEventListener('click', (e) => {
+    document.querySelectorAll('.text-editor-content').forEach((el) => {
+        if (!el.contains(e.target) && el._dirty) {
+            saveTextBlock(el);
+        }
+    });
+});
+
+document.addEventListener('focusout', (e) => {
+    if (e.target.classList && e.target.classList.contains('text-editor-content')) {
+        // slight delay so toolbar button clicks (which blur the editor) still register first
+        setTimeout(() => {
+            if (e.target._dirty) saveTextBlock(e.target);
+        }, 150);
+    }
+});
+
+document.addEventListener('input', (e) => {
+    if (e.target.classList && e.target.classList.contains('text-editor-content')) {
+        markUnsaved(e.target);
+    }
+});
+
+function markUnsaved(el) {
+    el._dirty = true;
+    const toolbar = el.previousElementSibling;
+    const indicator = toolbar?.querySelector('[data-role="save-indicator"]');
+    if (indicator) {
+        indicator.textContent = 'Unsaved';
+        indicator.className = 'save-indicator saving';
+    }
+}
+
+async function saveTextBlock(el) {
+    const projectId = el.dataset.projectId;
+    const blockId = el.dataset.blockId;
+    const toolbar = el.previousElementSibling;
+    const indicator = toolbar?.querySelector('[data-role="save-indicator"]');
+    try {
+        await apiFetch(`/projects/${projectId}/blocks/${blockId}/text/save/`, {
+            method: 'POST',
+            body: JSON.stringify({ content_html: el.innerHTML }),
+        });
+        el._dirty = false;
+        if (indicator) {
+            indicator.textContent = 'Saved';
+            indicator.className = 'save-indicator saved';
+        }
+    } catch (err) {
+        if (indicator) {
+            indicator.textContent = 'Save failed';
+            indicator.className = 'save-indicator';
+        }
+        showToast('Could not save text block: ' + err.message, 'error');
+    }
+}
+</script>
+<!-- 
+<script src="{% static 'projects/js/panel_manager.js' %}"></script>
+<script src="{% static 'projects/js/project_manager.js' %}"></script>
+<script src="{% static 'projects/js/blocks.js' %}"></script>
+<script src="{% static 'projects/js/text_editor.js' %}"></script>
+<script src="{% static 'projects/js/kanban_table.js' %}"></script>
+<script src="{% static 'projects/js/members.js' %}"></script>
+<script src="{% static 'projects/js/stories.js' %}"></script>
+<script src="{% static 'projects/js/comments.js' %}"></script>
+<script src="{% static 'projects/js/summarizer.js' %}"></script> -->
+{% endblock %}
