@@ -1,0 +1,23 @@
+<div class="block block-table" data-block-id="{{ block.id }}" data-project-id="{{ selected_project.id }}" data-table-id="{{ block.kanban_table.id }}">
+    {% include "projects/partials/block_toolbar.html" %}
+    {% if not block.is_collapsed %}
+    <div class="table-block-header">
+        <input type="text" class="table-title-input" value="{{ block.kanban_table.title }}" data-block-id="{{ block.id }}">
+        <div class="table-block-toolbar">
+            <div class="view-toggle" data-table-id="{{ block.kanban_table.id }}" data-block-id="{{ block.id }}">
+                <button class="view-toggle-btn {% if block.kanban_table.view_mode == 'row' %}active{% endif %}" data-mode="row">Row View</button>
+                <button class="view-toggle-btn {% if block.kanban_table.view_mode == 'column' %}active{% endif %}" data-mode="column">Column View</button>
+            </div>
+            <button class="btn btn-sm btn-primary btn-add-story" data-table-id="{{ block.kanban_table.id }}">+ Add Story</button>
+        </div>
+    </div>
+
+    <div class="table-block-body">
+        {% if block.kanban_table.view_mode == "row" %}
+            {% include "projects/partials/table_row_view.html" with table=block.kanban_table %}
+        {% else %}
+            {% include "projects/partials/table_column_view.html" with table=block.kanban_table %}
+        {% endif %}
+    </div>
+    {% endif %}
+</div>

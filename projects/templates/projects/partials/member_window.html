@@ -1,0 +1,36 @@
+<div class="right-panel-header">
+    <h3>Project Members</h3>
+    <div class="text-secondary" style="font-size:12px;">{{ selected_project.name }}</div>
+</div>
+<div class="right-panel-body" id="memberWindowBody" data-project-id="{{ selected_project.id }}">
+    {% if selected_project.owner_id == request.user.id %}
+    <button class="btn btn-primary btn-block btn-sm" id="btnAddMember">+ Add Member</button>
+    <div id="memberSearchArea" class="hidden mt-16">
+        <input type="text" class="form-control" id="memberSearchInput" placeholder="Search by username...">
+        <div id="memberSearchResults" class="mt-8"></div>
+    </div>
+    <hr class="divider">
+    {% endif %}
+
+    <div class="member-list">
+        {% for m in members %}
+        <div class="member-card">
+            <span class="avatar-pill" style="background:{{ m.user.avatar_color }}">{{ m.user.initials }}</span>
+            <div class="member-info">
+                <div class="member-name">
+                    {{ m.user.get_full_name|default:m.user.username }}
+                    {% if m.role == 'owner' %}<span class="badge badge-owner">Owner</span>{% endif %}
+                </div>
+                <div class="member-role text-secondary">{{ m.user.email }}</div>
+            </div>
+            {% if selected_project.owner_id == request.user.id and m.role != 'owner' %}
+            <button class="btn btn-sm btn-danger btn-remove-member" data-user-id="{{ m.user.id }}">Remove</button>
+            {% endif %}
+        </div>
+        {% empty %}
+        <div class="empty-state small">
+            <div class="empty-title">No members yet.</div>
+        </div>
+        {% endfor %}
+    </div>
+</div>

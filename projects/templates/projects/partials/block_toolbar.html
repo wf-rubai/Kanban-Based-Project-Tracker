@@ -1,0 +1,16 @@
+<div class="block-toolbar">
+    <div class="block-meta">
+        <span class="block-type-label">{{ block.get_block_type_display }}</span>
+        <span class="text-muted">by {{ block.created_by.username|default:"unknown" }}</span>
+        <span class="text-muted">&middot; {{ block.created_at|date:"M d, Y H:i" }}</span>
+    </div>
+    <div class="block-actions">
+        <button class="btn btn-icon btn-ghost btn-block-action" data-action="move-up" data-tooltip="↑">&uarr;</button>
+        <button class="btn btn-icon btn-ghost btn-block-action" data-action="move-down" data-tooltip="↓">&darr;</button>
+        <button class="btn btn-icon btn-ghost btn-block-action" data-action="duplicate" data-tooltip="Copy">Copy</button>
+        <button class="btn btn-icon btn-ghost btn-block-action" data-action="collapse" data-tooltip="{% if block.is_collapsed %}Expand{% else %}Collapse{% endif %}">
+            {% if block.is_collapsed %}Expand{% else %}Collapse{% endif %}
+        </button>
+        <button class="btn btn-icon btn-ghost btn-danger btn-block-action" data-action="delete" data-tooltip="Delete">Delete</button>
+    </div>
+</div>
