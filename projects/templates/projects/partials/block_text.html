@@ -1,0 +1,22 @@
+<div class="block block-text" data-block-id="{{ block.id }}" data-project-id="{{ selected_project.id }}">
+    {% include "projects/partials/block_toolbar.html" %}
+    {% if not block.is_collapsed %}
+    <div class="text-editor-toolbar">
+        <button type="button" class="btn btn-icon btn-ghost" data-cmd="bold" data-tooltip="Bold"><b>B</b></button>
+        <button type="button" class="btn btn-icon btn-ghost" data-cmd="italic" data-tooltip="Italic"><i>I</i></button>
+        <button type="button" class="btn btn-icon btn-ghost" data-cmd="underline" data-tooltip="Underline"><u>U</u></button>
+        <span class="toolbar-sep"></span>
+        <button type="button" class="btn btn-icon btn-ghost" data-cmd="formatBlock" data-value="H2" data-tooltip="Header">H2</button>
+        <button type="button" class="btn btn-icon btn-ghost" data-cmd="formatBlock" data-value="H3" data-tooltip="Subheader">H3</button>
+        <button type="button" class="btn btn-icon btn-ghost" data-cmd="formatBlock" data-value="BLOCKQUOTE" data-tooltip="Quote">Quote</button>
+        <button type="button" class="btn btn-icon btn-ghost" data-cmd="formatBlock" data-value="PRE" data-tooltip="Code">Code</button>
+        <span class="toolbar-sep"></span>
+        <button type="button" class="btn btn-icon btn-ghost" data-cmd="insertUnorderedList" data-tooltip="Bullet List">&bull; List</button>
+        <button type="button" class="btn btn-icon btn-ghost" data-cmd="insertOrderedList" data-tooltip="Numbered List">1. List</button>
+        <button type="button" class="btn btn-icon btn-ghost" data-cmd="insertChecklist" data-tooltip="Checkbox List">[ ] List</button>
+        <button type="button" class="btn btn-icon btn-ghost" data-cmd="insertHorizontalRule" data-tooltip="Horizontal Rule">HR</button>
+        <span class="save-indicator" data-role="save-indicator">Saved</span>
+    </div>
+    <div class="text-editor-content" contenteditable="true" data-block-id="{{ block.id }}" data-project-id="{{ selected_project.id }}">{{ block.text_block.content_html|safe }}</div>
+    {% endif %}
+</div>

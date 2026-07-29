@@ -1,0 +1,15 @@
+<a class="project-card {% if selected_project.id == project.id %}active{% endif %}" href="?project={{ project.id }}" data-project-id="{{ project.id }}">
+    <div class="project-card-top">
+        <span class="project-name">{{ project.name }}</span>
+        {% if is_owner %}
+            <span class="badge badge-owner">Owner</span>
+        {% else %}
+            <span class="badge badge-member">Member</span>
+        {% endif %}
+    </div>
+    <div class="project-card-meta">
+        <span>{{ project.member_count }} member{{ project.member_count|pluralize }}</span>
+        <span>&middot;</span>
+        <span>{{ project.created_at|date:"M d, Y" }}</span>
+    </div>
+</a>
