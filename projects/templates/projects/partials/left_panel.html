@@ -1,0 +1,42 @@
+<div class="panel-header">
+    <h3>My Projects</h3>
+    <button class="btn btn-primary btn-sm" id="btnCreateProject">+ Create</button>
+</div>
+
+<div class="panel-body">
+    <div class="project-section">
+        <div class="project-section-title">Owned Projects</div>
+        {% if owned_projects %}
+            {% for project in owned_projects %}
+                {% include "projects/partials/project_card.html" with project=project is_owner=True %}
+            {% endfor %}
+        {% else %}
+            <div class="empty-state small">
+                <div class="empty-icon-text">Empty</div>
+                <div class="empty-title">You don't own any projects yet.</div>
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="project-section">
+        <div class="project-section-title">Projects I Joined</div>
+        {% if joined_projects %}
+            {% for project in joined_projects %}
+                {% include "projects/partials/project_card.html" with project=project is_owner=False %}
+            {% endfor %}
+        {% else %}
+            <div class="empty-state small">
+                <div class="empty-icon-text">Empty</div>
+                <div class="empty-title">No joined projects yet.</div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+{% if selected_project and selected_project.owner_id == request.user.id %}
+<div class="panel-footer">
+    <button class="btn btn-danger btn-block btn-sm" id="btnDeleteProject" data-project-id="{{ selected_project.id }}">
+        Delete "{{ selected_project.name }}"
+    </button>
+</div>
+{% endif %}
