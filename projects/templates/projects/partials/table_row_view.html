@@ -1,0 +1,32 @@
+<div class="row-view-scroll">
+<table class="story-table">
+    <thead>
+        <tr>
+            <th class="col-name">Story Name</th>
+            <th>Backlog</th>
+            <th>In Progress</th>
+            <th>Testing</th>
+            <th>Review</th>
+            <th>Done</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for story in table.stories.all %}
+        <tr class="story-row" data-story-id="{{ story.id }}">
+            <td class="col-name">
+                <a href="#" class="story-link" data-story-id="{{ story.id }}">{{ story.name }}</a>
+                <span class="imp-badge-{{ story.importance|cut:'_' }}" style="display:none;"></span>
+                <div class="story-row-meta text-muted">P{{ story.priority_number }} &middot; {{ story.get_importance_display }}</div>
+            </td>
+            {% for ts in story.status_timestamps %}
+            <td class="ts-cell {% if ts.status == story.status %}ts-active{% endif %}">
+                {% if ts.entered_at %}{{ ts.entered_at|date:"Y-m-d H:i" }}{% else %}<span class="text-muted">—</span>{% endif %}
+            </td>
+            {% endfor %}
+        </tr>
+        {% empty %}
+        <tr><td colspan="6" class="text-secondary" style="text-align:center; padding:24px;">No stories yet. Click "+ Add Story" to create one.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+</div>

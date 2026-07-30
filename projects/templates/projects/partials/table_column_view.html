@@ -1,0 +1,23 @@
+<div class="kanban-columns">
+    {% for status_key, status_label in status_choices %}
+    <div class="kanban-column" data-status="{{ status_key }}">
+        <div class="kanban-column-header">
+            <span class="status-pill status-{{ status_key }}">{{ status_label }}</span>
+        </div>
+        <div class="kanban-column-body" data-status="{{ status_key }}">
+            {% for story in table.stories.all %}
+                {% if story.status == status_key %}
+                <div class="kanban-card" draggable="true" data-story-id="{{ story.id }}">
+                    <div class="kanban-card-top">
+                        <span class="imp-badge-{{ story.importance|cut:'_' }} badge">{{ story.get_importance_display }}</span>
+                    </div>
+                    <div class="kanban-card-name story-link" data-story-id="{{ story.id }}">{{ story.name }}</div>
+                    <div class="kanban-card-note text-secondary">{{ story.short_note }}</div>
+                    <div class="kanban-card-footer text-muted">Updated {{ story.updated_at|date:"M d, H:i" }}</div>
+                </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+    {% endfor %}
+</div>
