@@ -1,0 +1,12 @@
+{% for user in results %}
+<div class="search-result-row">
+    <span class="avatar-pill" style="background:{{ user.avatar_color }}">{{ user.initials }}</span>
+    <div class="member-info">
+        <div class="member-name">{{ user.get_full_name|default:user.username }}</div>
+        <div class="member-role text-secondary">{{ user.email }}</div>
+    </div>
+    <button class="btn btn-sm btn-primary btn-invite-user" data-user-id="{{ user.id }}">Invite</button>
+</div>
+{% empty %}
+<div class="text-secondary" style="font-size:12px; padding:8px 0;">No matching users found.</div>
+{% endfor %}
